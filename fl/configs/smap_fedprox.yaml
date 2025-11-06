@@ -1,0 +1,60 @@
+# ATFL config: SMAP + FedProx
+
+ray:
+  num_cpus: 48
+  num_gpus: 4
+  ignore_reinit_error: true
+
+resources:
+  client:
+    num_cpus: 4
+    num_gpus: 1.0
+
+simulation:
+  num_clients: 55
+  total_rounds: 30
+  fraction_fit: 0.25
+  fraction_evaluate: 0.0
+  min_available_clients: 10
+  min_fit_clients: 10
+  strict_num_clients: true
+
+strategy:
+  type: fedprox
+
+training:
+  local_epochs: 5
+  lr: 1.0e-4
+  proximal_mu: 0.01
+
+model:
+  seq_len: 100
+  enc_in: 25
+  c_out: 25
+  d_model: 512
+  n_heads: 8
+  e_layers: 3
+
+data:
+  dataset: SMAP
+  partition_mode: by_machine
+  batch_size: 64
+  seq_length: 100
+  step: 1
+  centralized_cache: false
+  client_load_test: false
+
+evaluation:
+  enabled: true
+  batch_size: 128
+  results_dir: eval_results/smap_fedprox
+
+scaffold:
+  damping: 0.1
+
+wandb:
+  enabled: true
+  project: ATFL
+  entity: huyln
+  run_name: smap_fedprox_30r
+  tags: [smap, fedprox, atfl]

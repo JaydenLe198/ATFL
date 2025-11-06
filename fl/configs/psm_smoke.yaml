@@ -1,0 +1,60 @@
+# Smoke test configuration for ATFL (PSM, minimal resources)
+
+ray:
+  num_cpus: 4
+  num_gpus: 1
+  ignore_reinit_error: true
+
+resources:
+  client:
+    num_cpus: 1
+    num_gpus: 1.0
+
+simulation:
+  num_clients: 2
+  total_rounds: 1
+  fraction_fit: 1.0
+  fraction_evaluate: 0.0
+  min_available_clients: 2
+  min_fit_clients: 2
+  strict_num_clients: false
+
+strategy:
+  type: fedprox
+
+training:
+  local_epochs: 1
+  lr: 5.0e-4
+  proximal_mu: 0.0
+
+model:
+  seq_len: 60
+  enc_in: 25
+  c_out: 25
+  d_model: 256
+  n_heads: 4
+  e_layers: 1
+
+data:
+  dataset: PSM
+  partition_mode: sequential
+  batch_size: 16
+  seq_length: 60
+  step: 1
+  centralized_cache: false
+  client_load_test: false
+
+evaluation:
+  enabled: true
+  batch_size: 32
+  results_dir: eval_results/smoke
+
+scaffold:
+  damping: 0.1
+
+wandb:
+  enabled: true
+  project: ATFL
+  entity: huyln
+  run_name: psm_smoke_gpu
+  tags: [psm, smoke, gpu]

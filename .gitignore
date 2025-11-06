@@ -1,0 +1,39 @@
+# Virtual environments
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.so
+
+# Byte-compiled / optimized / DLL files
+*.pyo
+*.pyd
+
+# Logs and outputs
+logs/
+out/
+eval_results/
+time_arrays/
+freq_arrays/
+wandb/
+
+# Ray temp dirs
+ray_temp/
+TempRay/
+
+# Cache directories
+.cache/
+
+# Datasets (large, user-provided)
+fl/datasets/
+
+# Checkpoints / model weights
+*.pt
+*.pth
+
+# Misc
+*.log
+*.tmp
+*.bak

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "atfl"
+version = "0.1.0"
+description = "Flower simulation for the Anomaly Transformer"
+license = "Apache-2.0"
+dependencies = [
+    "flwr[simulation]>=1.10.0",
+    "torch==2.2.1",
+    "torchvision==0.17.1",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "tqdm",
+    "pyyaml",
+    "wandb",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["fl"]
+
+[tool.flwr.app]
+publisher = "huy"
+
+[tool.flwr.app.components]
+serverapp = "fl.server_app:app"
+clientapp = "fl.client_app:app"
+
+[tool.flwr.app.config]
+num-server-rounds = 3
+fraction-fit = 0.5
+local-epochs = 1
+
+[tool.flwr.federations]
+default = "local-simulation"
+
+[tool.flwr.federations.local-simulation]
+options.num-supernodes = 10
+options.backend.name = "ray"
+options.backend.config.client_resources.num_gpus = 1

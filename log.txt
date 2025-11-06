@@ -1,0 +1,20 @@
+(ClientAppActor pid=2151547)   test_df = pd.read_csv(base / "test.csv").iloc[:, 1:].fillna(method="ffill").values.astype(np.float32)
+(ClientAppActor pid=2151547) [Client 1] using GPU cuda:0 (NVIDIA GeForce RTX 4090)
+(ClientAppActor pid=2151547) /share/home/nhle4237/ATFL/fl/utils/data_loader.py:106: FutureWarning: DataFrame.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+(ClientAppActor pid=2151547)   train_df = pd.read_csv(base / "train.csv").iloc[:, 1:].fillna(method="ffill").values.astype(np.float32)
+(ClientAppActor pid=2151547) /share/home/nhle4237/ATFL/fl/utils/data_loader.py:107: FutureWarning: DataFrame.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+(ClientAppActor pid=2151547)   test_df = pd.read_csv(base / "test.csv").iloc[:, 1:].fillna(method="ffill").values.astype(np.float32)
+(ClientAppActor pid=2151547) [Client 0] using GPU cuda:0 (NVIDIA GeForce RTX 4090)
+INFO :      aggregate_fit: received 2 results and 0 failures
+WARNING :   No fit_metrics_aggregation_fn provided
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [SUMMARY]
+INFO :      Run finished 1 round(s) in 86.45s
+INFO :      
+Simulation finished in 91.88s
+/share/home/nhle4237/ATFL/fl/utils/data_loader.py:106: FutureWarning: DataFrame.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  train_df = pd.read_csv(base / "train.csv").iloc[:, 1:].fillna(method="ffill").values.astype(np.float32)
+/share/home/nhle4237/ATFL/fl/utils/data_loader.py:107: FutureWarning: DataFrame.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  test_df = pd.read_csv(base / "test.csv").iloc[:, 1:].fillna(method="ffill").values.astype(np.float32)
+[Evaluation] Failed to compute metrics: The size of tensor a (32) must match the size of tensor b (60) at non-singleton dimension 1
