@@ -1,10 +1,10 @@
 # ATFL (Anomaly Transformer Federated Learning)
 
-Scaffold for a Flower + PyTorch simulation that federates the original
-[Anomaly-Transformer](https://github.com/huyln15/Anomaly-Transformer) model.
-The goal is to train the time-domain transformer across simulated clients with
-FedAvg, FedProx, or SCAFFOLD while producing the same anomaly-detection
-artifacts as the centralized project.
+Federated Flower + PyTorch replica of the original
+[Anomaly-Transformer](https://github.com/huyln15/Anomaly-Transformer) project.
+It trains the time-domain transformer across simulated clients using FedAvg,
+FedProx, or SCAFFOLD and evaluates with the same TranAD-style metrics as the
+centralized baseline.
 
 ## Layout
 
@@ -18,17 +18,104 @@ artifacts as the centralized project.
   - `configs/` &mdash; YAML presets (default + dataset-specific)  
   - `model/` &mdash; wrapper for the original Anomaly Transformer modules  
   - output folders (`eval_results/`, `logs/`, `out/`) for artefacts and metrics
-- `pyproject.toml` &mdash; Flower app metadata and dependencies
+- `pyproject.toml` &mdash; Flower app metadata and dependencies  
+- `instruction.md` &mdash; step-by-step setup guide
 
-## Next Steps
+## Requirements
 
-1. Port the original `AnomalyTransformer` implementation into `fl/model/TimeTransformer.py`
-   (or reuse via import if keeping the repo as a submodule).
-2. Fill in dataset loaders in `fl/utils/data_loader.py` for PSM, SMD, SMAP, and MSL.
-3. Implement the actual training loop logic in `fl/task.py`, mirroring the centralized
-   project while adding FedProx and SCAFFOLD hooks.
-4. Ready-to-run YAML configs live in `fl/configs/` (e.g., `psm_fedprox.yaml`, `smd_scaffold.yaml`, etc.).
-5. Drop raw datasets under `fl/datasets/` using the same structure as the original project.
-6. Optional: enable Weights & Biases by setting `wandb.enabled: true` in your YAML and exporting `WANDB_API_KEY`.
+- Python ≥ 3.9
+- CUDA-capable GPU (optional but recommended)
+- Datasets from the original Anomaly-Transformer repository (PSM, SMD, SMAP, MSL)
 
-See `fl/run_simulation.py` for the intended workflow. For batch experiments, run `bash fl/run_all_baselines.sh` from the project root.
+## Setup
+
+```bash
+cd /home/nhle4237/ATFL           # adjust to your clone path
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Place datasets under `fl/datasets/` using the same structure as in the original
+project, e.g.:
+
+```
+fl/datasets/PSM/train.csv
+fl/datasets/SMD/train/<machine>.csv
+fl/datasets/SMAP+MSL/data/train/<channel>.csv
+```
+
+## Running a smoke test
+
+```bash
+source .venv/bin/activate
+python3 -m fl.run_simulation fl/configs/psm_smoke.yaml
+```
+
+- Uses 2 clients, 1 training round, and GPU resources (if available).
+- Reports device assignment (`[Client X] using GPU ...`) and logs TranAD metrics
+  to `eval_results/smoke/PSM_tranad_metrics.csv`.
+
+## Full baseline scripts
+
+Each dataset × strategy pair has a YAML preset in `fl/configs/`:
+
+| Dataset | FedProx config              | SCAFFOLD config                 |
+|---------|----------------------------|---------------------------------|
+| PSM     | `psm_fedprox.yaml`         | `psm_scaffold.yaml`             |
+| SMD     | `smd_fedprox.yaml`         | `smd_scaffold.yaml`             |
+| SMAP    | `smap_fedprox.yaml`        | `smap_scaffold.yaml`            |
+| MSL     | `msl_fedprox.yaml`         | `msl_scaffold.yaml`             |
+
+Run everything sequentially (similar to DualTF-FLsim):
+
+```bash
+bash fl/run_all_baselines.sh
+```
+
+Outputs per run:
+- Terminal log and W&B metrics streamed to `logs/<timestamp>/...`
+- Config, run log, and TranAD CSV copied to `out/<dataset>/<strategy>/<timestamp>/`
+- Raw metrics stored in `eval_results/<timestamp>_<dataset>_<strategy>/...`
+
+## Weights & Biases
+
+All presets have W&B enabled with:
+```yaml
+wandb:
+  enabled: true
+  project: ATFL
+  entity: huyln
+  run_name: <dataset>_<strategy>_30r
+  tags: [...]
+```
+
+Before running:
+```bash
+export WANDB_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# optional: export WANDB_MODE=offline
+```
+
+Logged values:
+- Per-round `clients/time_mean_s`, `clients/time_std_s`, and per-client losses.
+- Post-training `eval/auc`, `eval/f1`, `eval/f1_adjusted`, etc.
+- Centralized inference time `post/infer_time_s`.
+
+## Dataset partitioning & model settings
+
+- PSM uses sequential partitioning (24 clients).
+- SMD, SMAP, MSL use by-machine partitioning (matching available segments).
+- Sequence length and feature dimensions mirror the original AT settings.
+- Batch sizes default to 64; adjust `batch_size` in the YAMLs as needed.
+
+## Troubleshooting
+
+- **No GPU usage**: ensure `resources.client.num_gpus` in your YAML is non-zero
+  and run `nvidia-smi` during training.
+- **Missing datasets**: verify paths under `fl/datasets/` and run
+  `python3 -m fl.utils.check_datasets --dataset <name>` for quick validation.
+- **W&B not logging**: confirm `wandb.enabled: true`, API key export, and that
+  the `wandb` package is installed in the virtual environment.
+- **Push to GitHub**: `.gitignore` excludes datasets, logs, and cache folders;
+  only source/config/docs are tracked.
