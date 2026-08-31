@@ -234,6 +234,7 @@ def main() -> None:
 
     base_model = build_model(model_kwargs)
     ndarrays = get_weights(base_model)
+    param_templates = [p.detach().cpu().numpy() for p in base_model.parameters()]
     initial_parameters = ndarrays_to_parameters(ndarrays)
 
     ray_cfg = cfg.get("ray", {})
@@ -258,7 +259,7 @@ def main() -> None:
             on_fit_config_fn=lambda rnd: fit_config(rnd, training_cfg),
             proximal_mu=0.0,
             cfg_ref=cfg,
-            param_templates=[p.copy() for p in ndarrays],
+            param_templates=param_templates,
             damping=float(cfg.get("scaffold", {}).get("damping", 0.1)),
         )
     else:

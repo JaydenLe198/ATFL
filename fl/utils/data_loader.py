@@ -173,15 +173,23 @@ def _load_smap_msl_combined(dataset_name: str = "SMAP") -> Dict[str, Any]:
 
     for _, row in meta.iterrows():
         chan_id = row["chan_id"]
-        train_fp = train_dir / f"{chan_id}.csv"
-        test_fp = test_dir / f"{chan_id}.csv"
-        if not train_fp.exists() or not test_fp.exists():
+        train_fp_csv = train_dir / f"{chan_id}.csv"
+        test_fp_csv = test_dir / f"{chan_id}.csv"
+        train_fp_npy = train_dir / f"{chan_id}.npy"
+        test_fp_npy = test_dir / f"{chan_id}.npy"
+
+        if train_fp_csv.exists() and test_fp_csv.exists():
+            train_arr = pd.read_csv(train_fp_csv).values.astype(np.float32)
+            test_arr = pd.read_csv(test_fp_csv).values.astype(np.float32)
+        elif train_fp_npy.exists() and test_fp_npy.exists():
+            train_arr = np.load(train_fp_npy).astype(np.float32)
+            test_arr = np.load(test_fp_npy).astype(np.float32)
+        else:
+            # Skip channels missing either train or test data
             continue
-        train_df = pd.read_csv(train_fp).values.astype(np.float32)
-        test_df = pd.read_csv(test_fp).values.astype(np.float32)
 
         # Build label vector from anomaly ranges
-        labels = np.zeros(test_df.shape[0], dtype=int)
+        labels = np.zeros(test_arr.shape[0], dtype=int)
         label_ranges = row["anomaly_sequences"]
         if isinstance(label_ranges, str) and label_ranges.strip():
             sequences = ast.literal_eval(label_ranges)
@@ -190,8 +198,8 @@ def _load_smap_msl_combined(dataset_name: str = "SMAP") -> Dict[str, Any]:
                 labels[start:end + 1] = 1
 
         scaler = MinMaxScaler(feature_range=(0, 1))
-        train_scaled = scaler.fit_transform(train_df)
-        test_scaled = scaler.transform(test_df)
+        train_scaled = scaler.fit_transform(train_arr)
+        test_scaled = scaler.transform(test_arr)
 
         train_segments.append(train_scaled)
         test_segments.append(test_scaled)
